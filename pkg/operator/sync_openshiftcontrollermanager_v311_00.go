@@ -149,7 +149,7 @@ func syncServiceCatalogControllerManager_v311_00_to_latest(c ServiceCatalogContr
 
 func manageServiceCatalogControllerManagerClientCA_v311_00_to_latest(client coreclientv1.CoreV1Interface, recorder events.Recorder) (bool, error) {
 	const apiserverClientCA = "client-ca"
-	_, caChanged, err := resourceapply.SyncConfigMap(client, recorder, kubeAPIServerNamespaceName, apiserverClientCA, targetNamespaceName, apiserverClientCA, []metav1.OwnerReference{})
+	_, caChanged, err := resourceapply.SyncConfigMap(client, recorder, kubeAPIServerNamespaceName, apiserverClientCA, OperandNamespace, apiserverClientCA, []metav1.OwnerReference{})
 	if err != nil {
 		return false, err
 	}
@@ -167,8 +167,8 @@ func manageServiceCatalogControllerManagerConfigMap_v311_00_to_latest(kubeClient
 	// we can embed input hashes on our main configmap to drive rollouts when they change.
 	inputHashes, err := resourcehash.MultipleObjectHashStringMapForObjectReferences(
 		kubeClient,
-		resourcehash.NewObjectRef().ForConfigMap().InNamespace(targetNamespaceName).Named("client-ca"),
-		resourcehash.NewObjectRef().ForSecret().InNamespace(targetNamespaceName).Named("serving-cert"),
+		resourcehash.NewObjectRef().ForConfigMap().InNamespace(OperandNamespace).Named("client-ca"),
+		resourcehash.NewObjectRef().ForSecret().InNamespace(OperandNamespace).Named("serving-cert"),
 	)
 	if err != nil {
 		return nil, false, err

@@ -28,7 +28,6 @@ import (
 
 const (
 	kubeAPIServerNamespaceName = "openshift-kube-apiserver" // only used in sync_ServiceCatalogControllerManager_v311_00.go to copy the configmap
-	targetNamespaceName        = "kube-service-catalog-controller-manager"
 	workQueueKey               = "key"
 	workloadFailingCondition   = "WorkloadFailing"
 )
@@ -112,7 +111,7 @@ func (c ServiceCatalogControllerManagerOperator) sync() error {
 
 	case operatorapiv1.Removed:
 		// TODO probably need to watch until the NS is really gone
-		if err := c.kubeClient.CoreV1().Namespaces().Delete(targetNamespaceName, nil); err != nil && !apierrors.IsNotFound(err) {
+		if err := c.kubeClient.CoreV1().Namespaces().Delete(OperandNamespace, nil); err != nil && !apierrors.IsNotFound(err) {
 			return err
 		}
 		// TODO report that we are removing?
@@ -178,7 +177,7 @@ func (c *ServiceCatalogControllerManagerOperator) eventHandler() cache.ResourceE
 }
 
 // this set of namespaces will include things like logging and metrics which are used to drive
-var interestingNamespaces = sets.NewString(targetNamespaceName)
+var interestingNamespaces = sets.NewString(OperandNamespace)
 
 func (c *ServiceCatalogControllerManagerOperator) namespaceEventHandler() cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
@@ -187,7 +186,7 @@ func (c *ServiceCatalogControllerManagerOperator) namespaceEventHandler() cache.
 			if !ok {
 				c.queue.Add(workQueueKey)
 			}
-			if ns.Name == targetNamespaceName {
+			if ns.Name == OperandNamespace {
 				c.queue.Add(workQueueKey)
 			}
 		},
@@ -196,7 +195,7 @@ func (c *ServiceCatalogControllerManagerOperator) namespaceEventHandler() cache.
 			if !ok {
 				c.queue.Add(workQueueKey)
 			}
-			if ns.Name == targetNamespaceName {
+			if ns.Name == OperandNamespace {
 				c.queue.Add(workQueueKey)
 			}
 		},
@@ -214,7 +213,7 @@ func (c *ServiceCatalogControllerManagerOperator) namespaceEventHandler() cache.
 					return
 				}
 			}
-			if ns.Name == targetNamespaceName {
+			if ns.Name == OperandNamespace {
 				c.queue.Add(workQueueKey)
 			}
 		},
